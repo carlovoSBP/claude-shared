@@ -154,11 +154,15 @@ jobs:
         #   2. runner-uid/cold/aws           — AWS credential opt-in
         #   3. runner-uid/cold/glab          — GitLab credential opt-in
         #   4. runner-uid/cold/aws+glab+tfe  — all three opt-ins combined
-        #   5. runner-uid/warm               — warm volume (HOST_UID-owned /root traversal)
+        #   5. runner-uid/warm               — warm volume (HOST_UID-owned /root traversal);
+        #      three passes: re-seed from a rewritten fixture, then no-seed keep
         #   6. uid-501/cold/no-optins        — macOS-style UID (<1000, below Ubuntu floor)
         #   7. uid-0/cold/no-optins          — root-legacy path (HOST_UID=0 → exec directly)
         #   8. runner-uid/ephemeral          — --ephemeral mode (no named volumes)
         #   9. runner-uid/ro/no-optins       — read-only workspace (EROFS robustness)
+        #      + no settings seed            — entrypoint copes without settings.docker.json
+        #   All other cells mount a settings fixture at the seed path and assert the
+        #   entrypoint copied it to /root/.claude/settings.json as a replaceable file.
         run: |
           set -euo pipefail
           export IMAGE=claude-docker:ci
@@ -183,6 +187,9 @@ jobs:
 
           # 5. Warm volume: first run populates the named volume, second run
           #    traverses the now HOST_UID-owned 0700 /root (exercises CAP_DAC_READ_SEARCH).
+          #    Also the settings-lifecycle cell: the warm pass reruns against a
+          #    rewritten fixture (V2 sentinel) proving the entrypoint RE-seeds,
+          #    and a third no-seed pass proves a persisted settings.json is kept.
           run_cell --uid="${RUNNER_UID}" --volstate=warm --ephemeral=0
 
           # 6. macOS-style UID 501 (below Ubuntu's default UID_MIN=1000).
@@ -196,8 +203,10 @@ jobs:
           run_cell --uid="${RUNNER_UID}" --ephemeral=1
 
           # 9. Read-only workspace: EROFS robustness — chown on :ro mounts must not
-          #    abort the entrypoint; assert no spurious WARN on stderr.
-          run_cell --uid="${RUNNER_UID}" --volstate=cold --ro=1 --ephemeral=0
+          #    abort the entrypoint; assert no spurious WARN on stderr. Doubles as
+          #    the no-settings-seed cell (--settings=0): the entrypoint must start
+          #    cleanly without a settings.docker.json forwarded from the host.
+          run_cell --uid="${RUNNER_UID}" --volstate=cold --ro=1 --ephemeral=0 --settings=0
 
           # 10. Non-runner GID: exercises the entrypoint's `useradd -g $HOST_GID`
           #     path with a GID that differs from the runner's (asserts the
