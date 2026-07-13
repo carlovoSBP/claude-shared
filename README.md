@@ -7,7 +7,6 @@ Shared [Claude Code](https://docs.anthropic.com/en/docs/claude-code) agents and 
 ```
 agents/                             # Custom agent definitions
 skills/                             # Custom skill definitions
-claude-docker/                      # Hardened Docker container for running Claude Code
 claude-code-multi-agent-iterm2.md   # Host-side iTerm2/tmux setup for agent teams (non-Docker)
 ```
 
@@ -37,7 +36,7 @@ cp -r skills/* ~/.claude/skills/
 
 ### claude-docker
 
-Run Claude Code in a hardened container with isolated filesystem access and `gh`/`glab`/`aws` pre-installed. See [`claude-docker/README.md`](claude-docker/README.md) for the quickstart.
+`claude-docker` — the hardened container for running Claude Code with isolated filesystem access and `gh`/`glab`/`aws` pre-installed — now lives in its own repository: [schubergphilis/claude-docker](https://github.com/schubergphilis/claude-docker). See its README for the quickstart.
 
 ## Available Agents
 
