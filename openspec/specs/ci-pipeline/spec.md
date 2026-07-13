@@ -40,29 +40,6 @@ The CI workflow SHALL declare `permissions: contents: read` at the workflow leve
 - **WHEN** the workflow runs
 - **THEN** the `GITHUB_TOKEN` cannot modify repository contents, issues, pull requests, packages, or any other write-scoped resource
 
-### Requirement: Shell script linting
-
-The CI workflow SHALL fail the build if `shellcheck` reports any issue at severity `warning` or higher against `claude-docker/run.sh`.
-
-#### Scenario: Shellcheck warning in run.sh
-
-- **WHEN** a change introduces a shellcheck warning or error in `claude-docker/run.sh`
-- **THEN** the `lint` job fails and the overall CI status is failure
-
-#### Scenario: Clean run.sh
-
-- **WHEN** `claude-docker/run.sh` has no shellcheck findings at warning level or higher
-- **THEN** the shellcheck step succeeds
-
-### Requirement: Dockerfile linting
-
-The CI workflow SHALL fail the build if `hadolint` reports any issue at severity `warning` or higher against `claude-docker/Dockerfile`.
-
-#### Scenario: Hadolint warning in Dockerfile
-
-- **WHEN** a change introduces a hadolint warning or error in `claude-docker/Dockerfile`
-- **THEN** the `lint` job fails and the overall CI status is failure
-
 ### Requirement: Agent and skill frontmatter validation
 
 The CI workflow SHALL validate YAML frontmatter on agent and skill files and fail the build on any violation. Schemas differ by kind:
@@ -96,34 +73,6 @@ Invalid YAML, a missing frontmatter block, or a missing required field MUST caus
 
 - **WHEN** every agent and skill file has valid YAML frontmatter including all required fields for its kind
 - **THEN** the frontmatter validation step succeeds
-
-### Requirement: Dockerfile build verification
-
-The CI workflow SHALL build `claude-docker/Dockerfile` for `linux/amd64` without pushing the resulting image.
-
-#### Scenario: Dockerfile builds successfully
-
-- **WHEN** the `docker-build` job runs against an unchanged Dockerfile
-- **THEN** the build completes successfully and no image is pushed to any registry
-
-#### Scenario: Upstream pin drift breaks the build
-
-- **WHEN** a sha256-pinned download in the Dockerfile no longer matches the upstream resource
-- **THEN** the `docker-build` job fails and the overall CI status is failure
-
-### Requirement: Path-gated Docker build
-
-The `docker-build` job SHALL run only when a pull request or push modifies files under `claude-docker/**` or modifies the workflow file itself.
-
-#### Scenario: PR touching only agents/
-
-- **WHEN** a pull request modifies only files under `agents/`
-- **THEN** the `docker-build` job is skipped and the overall CI status depends only on `lint`
-
-#### Scenario: PR touching claude-docker/
-
-- **WHEN** a pull request modifies any file under `claude-docker/`
-- **THEN** the `docker-build` job runs
 
 ### Requirement: Advisory checks do not block merges
 
